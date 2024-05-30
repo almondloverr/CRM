@@ -1,0 +1,273 @@
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<style>
+    body{
+
+        background: #f4f4f4;
+        padding: 0;
+        margin: 0;
+        zoom: 80%;
+        overflow-x: hidden;
+    }
+    .header {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 140px;
+        background-color: #f4f4f4;
+        position: fixed; /* Закрепляем заголовок */
+        top: 0; /* Располагаем заголовок в верхней части экрана */
+        left: 0; /* Выравниваем заголовок по левому краю */
+        z-index: 1000; /* Устанавливаем z-index для того, чтобы заголовок был поверх других элементов */
+    }
+    .header-container{
+        justify-content: space-between;
+        margin: auto;
+        display: flex;
+        width: calc(100% - 141px);
+        height: 60px;
+    }
+    .logo{
+        height: 60px;
+        width: 60px;
+    }
+
+    .navbar{
+        margin-bottom:auto;
+        margin-top: auto;
+        height: 39px;
+        width: auto;
+        display: inline-flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 20px;
+    }
+    ul{
+        gap: 20px;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        list-style-type: none;
+    }
+
+    ul li{
+        width: 135px;
+
+    }
+    a{
+        text-decoration: none;
+        color: white;
+    }
+    .navbar a, .about-us-link a{
+        color: var(--main-light-grey, #2a2a28);
+        text-decoration: none;
+    }
+    .navbar a:hover, .about-us-link a:hover{
+        cursor: pointer;
+        color: var(--main-grey, #232323);
+        transition: 0.5s;
+    }
+     /* Стили для остальных пунктов меню */
+    .navbar a {
+        color: var(--main-light-grey, #2a2a28);
+        display: block;
+        text-align: center;
+        padding: 10px 15px; /* Одинаковые отступы для всех пунктов */
+        border-radius: 80px; /* Скругление углов для всех пунктов */
+        font-family: "Inter", sans-serif;
+        font-size: 18px;
+
+    }
+
+    /* Стили при наведении для всех пунктов меню */
+    .navbar a:hover {
+        background-color: #2a2a28;; /* Фон для активного пункта меню */
+        color: var(--main-grey, #ffffff); /* Фон при наведении */
+        text-decoration: none;
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 18px;
+        text-align: center;
+    }
+    .navbar .active a {
+        background-color: #2a2a28;; /* Фон для активного пункта меню */
+        color: var(--main-grey, #ffffff); /* Цвет текста для активного пункта */
+
+    }
+    .active{
+        font-weight: 700;
+        background-color: #2a2a28;; /* Фон для активного пункта меню */
+        color: var(--main-grey, #ffffff); /* Цвет текста для активного пункта */
+    }
+
+    .nav-tools{
+        display: flex;
+        justify-content: space-between;
+        width: 170px;
+        height: 50px;
+    }
+    .photo-profile{
+        border-radius: 100%;
+        height: 50px;
+        width: 50px;
+        background: white;
+    }
+    .employees-create{
+        margin-top: 140px;
+        width: calc(100% - 141px);
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .bact-to-employees{
+        margin-bottom: 5px;
+        font-family: "TT Fors Trial Variable", sans-serif;
+        font-weight: 280;
+        font-size: 16px;
+        line-height: 100%;
+        color: #585858;
+        transition: all 0.3s;
+    }
+    .bact-to-employees:hover{
+        color: #7e8230;;
+    }
+    .employee-name{
+        padding: 0;
+        width: 50%;
+        background: none;
+        border: none;
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 36px;
+        color: #2a2a28;
+    }
+    .employee-management{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .employee-data{
+        gap: 20px;
+        margin-top: 50px;
+        width: 100%;
+        height: 1100px;
+        display: flex;
+    }
+    .employee-avatar {
+        border: 1px solid #a5a5a5;
+        width: 340px; /* ширина, адаптируйте под ваш дизайн */
+        height: 475px; /* высота, адаптируйте под ваш дизайн */
+        border-radius: 8px; /* если нужны скругленные углы */
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: end;
+    }
+    .title-style{
+        width: 340px;
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        line-height: 140%;
+        color: #2a2a28;
+        margin-bottom: 5px;
+    }
+    input:focus {
+        outline: none;  /* Убирает стандартное выделение */
+    }
+    input, select{
+        border: 1px solid #a5a5a5;
+        border-radius: 15px;
+        padding: 10px;
+        width: 340px;
+        height: 45px;
+        backdrop-filter: blur(50px);
+        box-shadow: inset 0 0 20px -3px rgba(255, 255, 255, 0.1);
+        background: #fff;
+        font-family: "Inter", sans-serif;
+        font-weight: 300;
+        font-size: 18px;
+        line-height: 140%;
+        color: #2a2a28;
+    }
+    .point-in-form{
+        flex-wrap: wrap;
+        margin-bottom: 38px;
+        display: flex;
+        gap:20px;
+
+    }
+    .right-section{
+        width: 100%;
+    }
+    .right-section button{
+        cursor: pointer;
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        line-height: 140%;
+        color: #fff;
+        border-radius: 15px;
+        width: 339px;
+        height: 50px;
+        backdrop-filter: blur(50px);
+        box-shadow: inset 0 0 20px -3px rgba(255, 255, 255, 0.1);
+        background: #7e8230;
+        border: none;
+        transition: all 0.3s;
+    }
+    .right-section button:hover{
+        background: #2a2a28;
+        border: none;
+    }
+
+
+
+
+
+
+
+
+
+</style>
+<link rel="icon" type="image/svg+xml" href="{% static 'logo.svg' %}">
+
+<title>Создание сотрудника</title>
+
+<div class="header">
+    <div class="header-container">
+        <a class="logo">
+            <img src="{% static 'logo.svg' %}" alt="Logo">
+        </a>
+        <div class="navbar">
+            <ul class="menu__box">
+                <li><a href="{% url 'main' %}">Дашборд</a></li>
+<!--                <li><a href="{% url 'calendar' %}">Календарь</a></li>-->
+                <li><a href="{% url 'orders' %}">Заказы</a></li>
+                <li><a class="active" style="color: white" href="{% url 'active'%}">Активность</a></li>
+                <li><a href="{% url 'staff' %}">Сотрудники</a></li>
+            </ul>
+        </div>
+        <div class="nav-tools">
+            <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="25" cy="25" r="25" fill="white" />
+              <path d="M23.9216 29.1572C21.9905 29.1572 20.3541 28.4713 19.0125 27.0993C17.6708 25.7274 17 24.054 17 22.0792C17 20.1045 17.6708 18.4311 19.0125 17.0592C20.3541 15.6872 21.9905 15.0008 23.9216 15C25.8535 15 27.4903 15.6864 28.8319 17.0592C30.1736 18.4311 30.8444 20.1045 30.8444 22.0792C30.8444 22.9373 30.6958 23.7678 30.3987 24.5708C30.1007 25.3737 29.7101 26.0605 29.2269 26.6312L36.3635 33.9278C36.4763 34.0431 36.5367 34.1851 36.5447 34.354C36.5528 34.5211 36.4924 34.6706 36.3635 34.8024C36.2347 34.9341 36.0926 35 35.9371 35C35.7801 35 35.6376 34.9341 35.5095 34.8024L28.3729 27.5045C27.7689 28.0307 27.0744 28.4379 26.2892 28.7261C25.504 29.0144 24.7148 29.1585 23.9216 29.1585M23.9216 27.9232C25.5241 27.9232 26.8775 27.3591 27.9815 26.2309C29.0848 25.1027 29.6364 23.7188 29.6364 22.0792C29.6364 20.4405 29.0848 19.057 27.9815 17.9288C26.8783 16.8006 25.5254 16.2365 23.9228 16.2365C22.3202 16.2365 20.9669 16.8006 19.8629 17.9288C18.7596 19.057 18.208 20.4405 18.208 22.0792C18.208 23.718 18.7596 25.1015 19.8629 26.2297C20.9661 27.3579 22.319 27.922 23.9216 27.922" fill="#2A2A28" />
+            </svg>
+            <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="25" cy="25" r="25" fill="white" />
+              <path d="M24.6116 35C24.1272 35 23.7138 34.8278 23.3715 34.4833C23.0292 34.1395 22.858 33.7261 22.858 33.2431H26.3718C26.3718 33.729 26.1995 34.1431 25.855 34.4855C25.5098 34.8285 25.0954 35 24.6116 35ZM17 32.1542V31.0664H18.7569V22.4474C18.7569 21.0259 19.2065 19.776 20.1058 18.6976C21.0065 17.6192 22.1469 16.9472 23.5271 16.6818V16.0878C23.5271 15.7854 23.6326 15.5287 23.8436 15.3177C24.0547 15.1059 24.311 15 24.6127 15C24.9137 15 25.1708 15.1059 25.384 15.3177C25.5965 15.5287 25.7027 15.7854 25.7027 16.0878V16.1694C25.5454 16.4146 25.4076 16.6622 25.2894 16.9124C25.1704 17.1619 25.078 17.4273 25.012 17.7087L24.8183 17.687C24.7552 17.6812 24.6874 17.6783 24.6149 17.6783C23.2928 17.6783 22.1673 18.1424 21.2382 19.0707C20.3099 19.9997 19.8458 21.1253 19.8458 22.4474V31.0664H29.3851V24.4534C29.5577 24.4874 29.7354 24.5139 29.9181 24.5328C30.1023 24.5509 30.2873 24.5531 30.4729 24.5393V31.0664H32.2298V32.1542H17Z" fill="#2A2A28" />
+              <path d="M28.0872 21.1735C28.6181 21.7022 29.2606 21.9666 30.0149 21.9666C30.7706 21.9666 31.4113 21.7008 31.9393 21.1713C32.468 20.6412 32.7323 19.999 32.7323 19.2448C32.7309 18.4891 32.4654 17.8473 31.936 17.3193C31.4066 16.7913 30.7648 16.5273 30.0105 16.5273C29.2556 16.5273 28.6137 16.7924 28.085 17.3226C27.5571 17.8527 27.2931 18.4949 27.2931 19.2491C27.2931 20.0041 27.5578 20.6456 28.0872 21.1735Z" fill="#FF0035" />
+            </svg>
+            <div class="photo-profile"></div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 140px; width: auto; align-items: center; display: flex">
+    <img style="cursor:text; margin-left: auto; margin-right: auto;" src="{% static 'Group 233.png' %}" alt="Logo">
+</div>
+
+{% endblock %}
