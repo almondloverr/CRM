@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
-
+from django.contrib.auth.models import User
 # ******** СУЩНОСТИ, СВЯЗАННЫЕ С ЗАВЕДЕНИЕМ РАБОТНИКА ********* #
 
 # таблица с описанием отделов на производства
@@ -42,6 +42,7 @@ class Employee(models.Model):
         ('not_fixed', "Сдельный")
     )
 
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="Пользователь", null=True, blank=True)
     first_name = models.CharField(max_length=100, verbose_name="Имя")
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
     middle_name = models.CharField(max_length=100, verbose_name="Отчество", blank=True, null=True)
@@ -200,6 +201,12 @@ class Activity(models.Model):
         ('suspended', 'Приостановлено'),
     )
 
+    PAYMENT_TYPES = (
+        ('cash', 'Наличные'),
+        ('card', 'По карте'),
+        ('transaction', 'Переводом'),
+    )
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name="Заказ")
     employee = models.ForeignKey('Employee', on_delete=models.CASCADE, verbose_name="Ответственный", related_name="activities")
     activity_descr = models.TextField(verbose_name="Описание работы", default='', blank=True)
@@ -210,6 +217,7 @@ class Activity(models.Model):
     total_work_cost = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Общая стоимость работы")
     is_paid = models.BooleanField(default=False, verbose_name="Оплата произведена")
     payment_date = models.DateField(verbose_name="Дата оплаты", blank=True, null=True)
+    payment_type = models.CharField(max_length=100, choices=PAYMENT_TYPES, default='cash', verbose_name="Способ оплаты")  # новое поле
     photo1 = models.ImageField(
         upload_to='activity/', 
         verbose_name="Фото 1", 

@@ -9,9 +9,45 @@ from django.db.models import Q
 from decimal import Decimal
 from datetime import datetime
 from django.db.models import Sum
+from django.contrib.auth import authenticate, login
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 
 
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+def login_view(request):
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect('main')  # Перенаправляем персонал на страницу администрирования
+        else:
+            return redirect('active')  # Обычные пользователи попадают на свой профиль
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            if user.is_staff:
+                return redirect('main')
+            else:
+                return redirect('active')
+        else:
+            return render(request, 'auth.html', {'error_message': 'Invalid login credentials'})
+
+    return render(request, 'auth.html')
+
+@login_required
 def main_view(request):
+
+    employee = Employee.objects.get(user=request.user)
+
+    if employee.position.access_lvl < 2:
+        return redirect('active')
+
     orders = Order.objects.all().select_related('contract').prefetch_related('technical_specifications')
     total_orders = orders.count()  # Подсчитываем количество заказов
     total_employees = Employee.objects.count()
@@ -40,7 +76,8 @@ def main_view(request):
         'total_contract_value': total_contract_value,
         'completed_count': completed_count,
         'queue_count': queue_count,
-        'in_progress_count': in_progress_count
+        'in_progress_count': in_progress_count,
+        'employee' : employee
     })
 
 def calendar_view(request):
@@ -48,7 +85,15 @@ def calendar_view(request):
 
 
 def add_activity(request):
-    return render(request, 'add_activity.html')
+    worker_position = JobTitle.objects.filter(name='Рабочий').first()
+    executors = Employee.objects.filter(position=worker_position) if worker_position else Employee.objects.none()
+    orders = Order.objects.all()
+
+    context = {
+        'orders': orders,
+        'executors': executors
+    }
+    return render(request, 'add_activity.html', context)
 def active_view(request):
     departments = Department.objects.all()
     positions = JobTitle.objects.all()
@@ -80,7 +125,14 @@ def get_payment_status(contract, pickup_delivery):
         return "Оплата произведена"
     return "Неопределенный статус"
 
+@login_required
 def orders_view(request):
+    employee = Employee.objects.get(user=request.user)
+
+    if employee.position.access_lvl < 2:
+        return redirect('active')
+
+
     orders = Order.objects.select_related(
         'contract', 'manager', 'executor1', 'executor2', 'executor3'
     ).prefetch_related('technical_specifications', 'pickupdelivery_set')
@@ -171,7 +223,13 @@ def format_orders_data(orders):
 
 
 @csrf_exempt
+@login_required
 def add_order(request):
+    employee = Employee.objects.get(user=request.user)
+
+    if employee.position.access_lvl < 2:
+        return redirect('active')
+
     manager_position = JobTitle.objects.filter(name='Менеджер').first()
     managers = Employee.objects.filter(position=manager_position) if manager_position else Employee.objects.none()
     worker_position = JobTitle.objects.filter(name='Рабочий').first()
@@ -365,7 +423,14 @@ def add_order(request):
 
 
 @csrf_exempt
+@login_required
 def delete_order(request, order_id):
+
+    employee = Employee.objects.get(user=request.user)
+
+    if employee.position.access_lvl < 2:
+        return redirect('active')
+
     if request.method == 'POST':
         try:
             order = Order.objects.get(pk=order_id)
@@ -377,7 +442,13 @@ def delete_order(request, order_id):
 
 
 @csrf_exempt
+@login_required
 def refactor_order(request, order_id):
+    employee = Employee.objects.get(user=request.user)
+
+    if employee.position.access_lvl < 2:
+        return redirect('active')
+
     # Получаем заказ по ID
     order = get_object_or_404(Order, id=order_id)
 
@@ -515,7 +586,13 @@ def refactor_order(request, order_id):
 
 
 #СОТРУДНИКИ
+@login_required
 def staff_view(request):
+    employee = Employee.objects.get(user=request.user)
+
+    if employee.position.access_lvl < 2:
+        return redirect('active')
+
     departments = Department.objects.all()
     positions = JobTitle.objects.all()
     employees = Employee.objects.select_related('position', 'department').all()
@@ -562,7 +639,13 @@ def staff_view(request):
     return render(request, 'staff.html', context)
 
 @csrf_exempt
+@login_required
 def add_employee(request):
+    employee = Employee.objects.get(user=request.user)
+
+    if employee.position.access_lvl < 2:
+        return redirect('active')
+
     departments = Department.objects.all()
     positions = JobTitle.objects.all()
 
@@ -618,7 +701,13 @@ def add_employee(request):
         return render(request, 'add_employee.html', context)
 
 @csrf_exempt
+@login_required
 def delete_employee(request, employee_id):
+    employee = Employee.objects.get(user=request.user)
+
+    if employee.position.access_lvl < 2:
+        return redirect('active')
+
     if request.method == 'POST':
         try:
             employee = Employee.objects.get(pk=employee_id)
@@ -629,7 +718,13 @@ def delete_employee(request, employee_id):
     return JsonResponse({'success': False, 'error': 'Неверный запрос'})
 
 @csrf_exempt
+@login_required
 def refactor_employee(request, employee_id):
+    employee = Employee.objects.get(user=request.user)
+
+    if employee.position.access_lvl < 2:
+        return redirect('active')
+
     employee = get_object_or_404(Employee, pk=employee_id)
     departments = Department.objects.all()
     positions = JobTitle.objects.all()
