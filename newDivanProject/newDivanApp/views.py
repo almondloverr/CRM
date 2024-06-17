@@ -50,7 +50,16 @@ def calendar_view(request):
 def add_activity(request):
     return render(request, 'add_activity.html')
 def active_view(request):
-    return render(request, 'active.html')
+    departments = Department.objects.all()
+    positions = JobTitle.objects.all()
+    employees = Employee.objects.select_related('position', 'department').all()
+
+    context = {
+        'employees': employees,
+        'departments': departments,
+        'positions': positions
+    }
+    return render(request, 'active.html', context)
 
 
 
