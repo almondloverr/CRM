@@ -371,7 +371,7 @@
 
 <div class="order-create">
     <a class="back-to-activity" href="{% url 'active' %}">Назад ко всем активностям</a>
-    <form id="orderCreationForm" method="POST" enctype="multipart/form-data">
+    <form id="orderCreationForm" method="POST" enctype="multipart/form-data" action="{% url 'add_activity' %}">
         {% csrf_token %}
         <div style="justify-content: space-between; display: flex">
             <input type="text" name="number" class="active-name" placeholder="Введите НОМЕР активности" required style="border-radius: 5px">
@@ -400,7 +400,7 @@
                                 <input type="date" name="date_start" id="date_start" style="width: 100%" required>
                             </label>
                             <label class="title-style" style="width: 220px">Закончил<br>
-                                <input type="date" name="date_end" id="date_end" style="width: 100%" required>
+                                <input type="date" name="date_end" id="date_end" style="width: 100%" >
                             </label>
                         </div>
 
@@ -556,6 +556,56 @@
 
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const orderSelect = document.querySelector('[name="name-order"]');
+    const furnitureTypeSelect = document.querySelector('[name="furniture_type1"]');
+    const workTypeSelect = document.querySelector('#work_type1');
+    const itemTypeInput = document.querySelector('[name="item_type"]');
+    const itemsQtyInput = document.querySelector('[name="items_qty"]');
+    const shortDescrInput = document.querySelector('[name="short_descr"]');
+    const materialNameInput = document.querySelector('[name="material_name"]');
+    const fittingNameInput = document.querySelector('[name="fitting_name"]');
+    const stockCheckbox = document.querySelector('[name="stock"]');
+    const fittingStockCheckbox = document.querySelector('[name="fitting_in_stock"]');
+
+    // Функция для загрузки данных по выбранному заказу
+    function loadOrderData(orderNumber) {
+        fetch(`/api/get_order_data/?order_number=${orderNumber}`)
+            .then(response => response.json())
+            .then(data => {
+                furnitureTypeSelect.value = data.furniture_type;
+                workTypeSelect.value = data.work_types.split(',');
+                itemTypeInput.value = data.item_type;
+                itemsQtyInput.value = data.items_qty;
+                shortDescrInput.value = data.short_descr;
+
+                // Заполнение данных о материалах
+                const materials = data.materials;
+                if (materials.length > 0) {
+                    const material = materials[0]; // Берем первый материал для примера
+                    materialNameInput.value = material.name;
+                    fittingNameInput.value = material.fitting_name;
+                    stockCheckbox.checked = material.in_stock;
+                    fittingStockCheckbox.checked = material.fitting_in_stock;
+                }
+            })
+            .catch(error => console.error('Ошибка загрузки данных о заказе:', error));
+    }
+
+    // Обработчик изменения значения номера заказа
+    orderSelect.addEventListener('change', function() {
+        const selectedOrderNumber = this.value;
+        loadOrderData(selectedOrderNumber);
+    });
+
+    // Инициализация данных при загрузке страницы, если выбран заказ по умолчанию
+    const defaultOrderNumber = orderSelect.value;
+    if (defaultOrderNumber) {
+        loadOrderData(defaultOrderNumber);
+    }
+});
+</script>
+<script>
     new MultiSelectTag('work_type1', {
     rounded: true,    // default true
     shadow: true,      // default false
@@ -575,6 +625,59 @@
     }
 })
 </script>
-
+<script>
+document.getElementById('photoInput1').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('photoPreview1');
+            preview.style.backgroundImage = `url('${e.target.result}')`;
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition = 'center';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+document.getElementById('photoInput2').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('photoPreview2');
+            preview.style.backgroundImage = `url('${e.target.result}')`;
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition = 'center';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+document.getElementById('photoInput3').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('photoPreview3');
+            preview.style.backgroundImage = `url('${e.target.result}')`;
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition = 'center';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+document.getElementById('photoInput4').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('photoPreview4');
+            preview.style.backgroundImage = `url('${e.target.result}')`;
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition = 'center';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
 
 {% endblock %}

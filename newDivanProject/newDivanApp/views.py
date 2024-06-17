@@ -12,7 +12,7 @@ from django.db.models import Sum
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-
+from django.http import HttpResponseBadRequest
 
 def logout_view(request):
     logout(request)
@@ -85,6 +85,53 @@ def calendar_view(request):
 
 
 def add_activity(request):
+    if request.method == 'POST':
+        order_number = request.POST['name-order']
+        executor_id = request.POST['executor']
+        date_start = request.POST['date_start']
+        date_end = request.POST['date_end']
+        total_work_cost = request.POST['total_work_cost']
+        is_paid = 'is_paid' in request.POST
+        payment_date = request.POST['payment_date'] or None
+        payment_type = request.POST['payment_type']
+        furniture_type = request.POST['furniture_type1']
+        work_types = request.POST['work_types']
+        item_type = request.POST['item_type']
+        items_qty = request.POST['items_qty']
+        short_descr = request.POST['short_descr']
+        material_name = request.POST['material_name']
+        in_stock = 'stock' in request.POST
+        fitting_name = request.POST['fitting_name']
+        fitting_in_stock = 'fitting_in_stock' in request.POST
+        comments = request.POST['comments']
+
+        photo1 = request.FILES.get('photo1')
+        photo2 = request.FILES.get('photo2')
+        photo3 = request.FILES.get('photo3')
+        photo4 = request.FILES.get('photo4')
+
+        order = Order.objects.get(number=order_number)
+        executor = Employee.objects.get(id=executor_id)
+
+        activity = Activity(
+            order=order,
+            employee=executor,
+            activity_descr=short_descr,
+            date_start=date_start,
+            date_end=date_end,
+            total_work_cost=total_work_cost,
+            is_paid=is_paid,
+            payment_date=payment_date,
+            payment_type=payment_type,
+            photo1=photo1,
+            photo2=photo2,
+            photo3=photo3,
+            photo4=photo4,
+        )
+        activity.save()
+
+        return redirect('active')  # replace 'success_page' with your actual success page URL name
+
     worker_position = JobTitle.objects.filter(name='Рабочий').first()
     executors = Employee.objects.filter(position=worker_position) if worker_position else Employee.objects.none()
     orders = Order.objects.all()
@@ -94,15 +141,80 @@ def add_activity(request):
         'executors': executors
     }
     return render(request, 'add_activity.html', context)
+
+
+
+def get_order_data(request):
+    order_number = request.GET.get('order_number')
+    try:
+        order = Order.objects.get(number=order_number)
+        tech_spec = TechnicalSpecification.objects.get(order=order)
+        materials = Material.objects.filter(order=order)
+
+        data = {
+            'furniture_type': tech_spec.furniture_type1,
+            'work_types': tech_spec.work_type1,
+            'item_type': tech_spec.item_type,
+            'items_qty': tech_spec.items_qty,
+            'short_descr': tech_spec.short_descr,
+            'materials': list(materials.values('name', 'fitting_name', 'in_stock', 'fitting_in_stock')),
+        }
+        return JsonResponse(data)
+    except (Order.DoesNotExist, TechnicalSpecification.DoesNotExist) as e:
+        return JsonResponse({'error': 'Заказ не найден'}, status=404)
+
 def active_view(request):
     departments = Department.objects.all()
     positions = JobTitle.objects.all()
     employees = Employee.objects.select_related('position', 'department').all()
+    activities = Activity.objects.select_related('employee', 'order').all()
+
+    backlog_activities = []
+    to_do_activities = []
+    in_progress_activities = []
+    in_review_activities = []
+    closed_activities = []
+
+    for activity in activities:
+        try:
+            order = activity.order
+            tech_spec = TechnicalSpecification.objects.get(order=order)
+            contract = Contract.objects.get(order=order)
+            responsible_employee = activity.employee
+
+            activity_data = {
+                'profile_image': responsible_employee.avatar.url if responsible_employee.avatar else None,
+                'employee_name': f"{responsible_employee.first_name} {responsible_employee.last_name}",
+                'order_number': order.number,
+                'short_descr': tech_spec.short_descr,
+                'furniture_type': tech_spec.furniture_type1,
+                'completion_date': contract.completion_date,
+            }
+
+            if activity.status == 'backlog':
+                backlog_activities.append(activity_data)
+            elif activity.status == 'to_do':
+                to_do_activities.append(activity_data)
+            elif activity.status == 'in_progress':
+                in_progress_activities.append(activity_data)
+            elif activity.status == 'in_review':
+                in_review_activities.append(activity_data)
+            elif activity.status in ['closed_positive', 'closed_negative']:
+                closed_activities.append(activity_data)
+        except TechnicalSpecification.DoesNotExist:
+            continue
+        except Contract.DoesNotExist:
+            continue
 
     context = {
         'employees': employees,
         'departments': departments,
-        'positions': positions
+        'positions': positions,
+        'backlog_activities': backlog_activities,
+        'to_do_activities': to_do_activities,
+        'in_progress_activities': in_progress_activities,
+        'in_review_activities': in_review_activities,
+        'closed_activities': closed_activities
     }
     return render(request, 'active.html', context)
 

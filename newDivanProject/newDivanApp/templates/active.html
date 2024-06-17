@@ -1,5 +1,6 @@
 {% load static %}
 {% block content %}
+{% now "Y-m-d" as current_date %}
 <style>
 body{
 
@@ -334,6 +335,117 @@ body{
     .logout-button:hover svg path{
         stroke: white;
     }
+    .active-container{
+        width: calc(100% - 141px);
+        justify-content: space-between;
+        margin-top: 50px;
+        margin-left: 70px;
+        display: flex;
+        height: 500px;
+    }
+    .active-column{
+        width: 19%;
+        height: auto;
+
+    }
+    .column-title{
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        color: #222;
+    }
+    .column-body{
+        min-height: 400px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        margin-top: 10px;
+        border-radius: 15px;
+        width: 100%;
+        backdrop-filter: blur(50px);
+        background: #d9d9d9;
+        height: auto;
+    }
+    .activity{
+        margin-bottom: 10px;
+        width: calc(100% - 20px);
+        margin-left: auto;
+        margin-right: auto;
+        background: #fff;
+        height: 161px;
+        border: 1px solid #a5a5a5;
+        border-radius: 15px;
+    }
+    .profile-active{
+        margin: 10px;
+        gap: 5px;
+        display: flex;
+        align-items: center;
+        height: 35px;
+    }
+    .profile-active img{
+        height: 35px;
+        width: 35px;
+        border-radius: 100%;
+    }
+    .profile-active-avatar{
+        height: 35px;
+        width: 35px;
+        border-radius: 100%;
+        background-color: black;
+    }
+    .profile-active-name{
+        font-family: "Inter", sans-serif;
+        font-weight: 300;
+        font-size: 18px;
+        line-height: 140%;
+        color: #a5a5a5;
+    }
+    .active-order{
+        margin-left: 10px;
+        font-family: "Inter", sans-serif;
+        font-weight: 300;
+        font-size: 18px;
+        line-height: 140%;
+        color: #4e4e4e;
+    }
+    .active-comment{
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 140%;
+        color: #2a2a28;
+        margin-left: 10px;
+    }
+    .type-date{
+        margin-left: 10px;
+        margin-top: 21px;
+        display: flex;
+        justify-content: space-between;
+        width: calc(100% - 20px);
+    }
+    .furniture-type{
+        border-radius: 50px;
+        background: #d4d79c;
+        padding: 1px 10px;
+        width: auto;
+        height: 20px;
+        font-family: "Inter", sans-serif;
+        font-weight: 300;
+        font-size: 16px;
+        text-align: center;
+        color: #717630;
+    }
+    .date{
+        gap: 5px;
+        display: flex;
+        align-items: center;
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 140%;
+        color: #4e4e4e;
+    }
+
 
     @media (max-width: 1400px) {
         .button-text {
@@ -398,12 +510,14 @@ body{
     <div class="sorting-block" >
         <div class="sorting-panel">
             <div class="sorting-label">
+                {% if request.user.employee.position.access_lvl >= 4 %}
                 <div class="sorting-panel-pt">
                     <div class="panel-pt">Поиск по сотруднику</div>
                     <label>
                         <input name="search_query" style="color: #2a2a28;" type="text" placeholder="Вальчук">
                     </label>
                 </div>
+                {% endif %}
 
                 <div class="sorting-panel-pt">
                     <div class="panel-pt">Подразделения</div>
@@ -427,7 +541,7 @@ body{
                     </div>
                 </div>
             </div>
-
+            {% if request.user.employee.position.access_lvl >= 4 %}
             <div class="add-new-order">
                 <a href="{% url 'add_activity' %}" style="display: flex; align-items: center">
                     <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -436,9 +550,191 @@ body{
                     <span class="button-text">Завести активность</span>
                 </a>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
+<div class="active-container">
+    {% if request.user.employee.position.access_lvl >= 4 %}
+    <div class="active-column">
+        <div class="column-title">Бэклог</div>
+        <div class="column-body">
+            {% for activity in backlog_activities %}
+            <div class="activity">
+                <div class="profile-active">
+                    <div class="profile-active-avatar">
+                        {% if activity.profile_image %}
+                        <img src="{{ activity.profile_image }}" alt="{{ activity.employee_name }}">
+                        {% endif %}
+                    </div>
+                    <div class="profile-active-name">{{ activity.employee_name }}</div>
+                </div>
+                <div class="active-order">{{ activity.order_number }}</div>
+                <div class="active-comment">{{ activity.short_descr }}</div>
+                <div class="type-date">
+                    <div class="furniture-type">
+                        {% if activity.furniture_type == 'soft' %}
+                            Мягкая мебель
+                        {% elif activity.furniture_type == 'cabinet' %}
+                            Корпусная мебель
+                        {% endif %}
+                    </div>
+                    <div class="date">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.2611 14.6922L9.44444 10.8756V5.47H10.5556V10.43L14.0256 13.9L13.2611 14.6922ZM9.44444 3.33333V1.11111H10.5556V3.33333H9.44444ZM16.6667 10.5556V9.44444H18.8889V10.5556H16.6667ZM9.44444 18.8889V16.6667H10.5556V18.8889H9.44444ZM1.11111 10.5556V9.44444H3.33333V10.5556H1.11111ZM10.0033 20C8.62111 20 7.32111 19.7378 6.10333 19.2133C4.8863 18.6881 3.82741 17.9756 2.92667 17.0756C2.02593 16.1756 1.31296 15.1178 0.787778 13.9022C0.262593 12.6867 0 11.387 0 10.0033C0 8.61963 0.262222 7.31963 0.786666 6.10333C1.31111 4.88704 2.0237 3.82815 2.92444 2.92667C3.82518 2.02519 4.88296 1.31222 6.09778 0.787779C7.31259 0.263335 8.61222 0.000742306 9.99667 1.56495e-06C11.3811 -0.000739176 12.6811 0.261483 13.8967 0.786668C15.1122 1.31185 16.1711 2.02445 17.0733 2.92445C17.9756 3.82445 18.6885 4.88222 19.2122 6.09778C19.7359 7.31333 19.9985 8.61296 20 9.99667C20.0015 11.3804 19.7393 12.6804 19.2133 13.8967C18.6874 15.113 17.9748 16.1719 17.0756 17.0733C16.1763 17.9748 15.1185 18.6878 13.9022 19.2122C12.6859 19.7367 11.3863 19.9993 10.0033 20ZM10 18.8889C12.4815 18.8889 14.5833 18.0278 16.3056 16.3056C18.0278 14.5833 18.8889 12.4815 18.8889 10C18.8889 7.51852 18.0278 5.41667 16.3056 3.69445C14.5833 1.97222 12.4815 1.11111 10 1.11111C7.51852 1.11111 5.41667 1.97222 3.69444 3.69445C1.97222 5.41667 1.11111 7.51852 1.11111 10C1.11111 12.4815 1.97222 14.5833 3.69444 16.3056C5.41667 18.0278 7.51852 18.8889 10 18.8889Z" fill="#FF0035" />
+                        </svg>
+                        {{ activity.completion_date|date:'d.m.Y' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="active-column">
+        <div class="column-title">К выполнению</div>
+        <div class="column-body">
+            {% for activity in to_do_activities %}
+            <div class="activity">
+                <div class="profile-active">
+                    <div class="profile-active-avatar">
+                        {% if activity.profile_image %}
+                        <img src="{{ activity.profile_image }}" alt="{{ activity.employee_name }}">
+                        {% endif %}
+                    </div>
+                    <div class="profile-active-name">{{ activity.employee_name }}</div>
+                </div>
+                <div class="active-order">{{ activity.order_number }}</div>
+                <div class="active-comment">{{ activity.short_descr }}</div>
+                <div class="type-date">
+                    <div class="furniture-type">
+                        {% if activity.furniture_type == 'soft' %}
+                            Мягкая мебель
+                        {% elif activity.furniture_type == 'cabinet' %}
+                            Корпусная мебель
+                        {% endif %}
+                    </div>
+                    <div class="date">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.2611 14.6922L9.44444 10.8756V5.47H10.5556V10.43L14.0256 13.9L13.2611 14.6922ZM9.44444 3.33333V1.11111H10.5556V3.33333H9.44444ZM16.6667 10.5556V9.44444H18.8889V10.5556H16.6667ZM9.44444 18.8889V16.6667H10.5556V18.8889H9.44444ZM1.11111 10.5556V9.44444H3.33333V10.5556H1.11111ZM10.0033 20C8.62111 20 7.32111 19.7378 6.10333 19.2133C4.8863 18.6881 3.82741 17.9756 2.92667 17.0756C2.02593 16.1756 1.31296 15.1178 0.787778 13.9022C0.262593 12.6867 0 11.387 0 10.0033C0 8.61963 0.262222 7.31963 0.786666 6.10333C1.31111 4.88704 2.0237 3.82815 2.92444 2.92667C3.82518 2.02519 4.88296 1.31222 6.09778 0.787779C7.31259 0.263335 8.61222 0.000742306 9.99667 1.56495e-06C11.3811 -0.000739176 12.6811 0.261483 13.8967 0.786668C15.1122 1.31185 16.1711 2.02445 17.0733 2.92445C17.9756 3.82445 18.6885 4.88222 19.2122 6.09778C19.7359 7.31333 19.9985 8.61296 20 9.99667C20.0015 11.3804 19.7393 12.6804 19.2133 13.8967C18.6874 15.113 17.9748 16.1719 17.0756 17.0733C16.1763 17.9748 15.1185 18.6878 13.9022 19.2122C12.6859 19.7367 11.3863 19.9993 10.0033 20ZM10 18.8889C12.4815 18.8889 14.5833 18.0278 16.3056 16.3056C18.0278 14.5833 18.8889 12.4815 18.8889 10C18.8889 7.51852 18.0278 5.41667 16.3056 3.69445C14.5833 1.97222 12.4815 1.11111 10 1.11111C7.51852 1.11111 5.41667 1.97222 3.69444 3.69445C1.97222 5.41667 1.11111 7.51852 1.11111 10C1.11111 12.4815 1.97222 14.5833 3.69444 16.3056C5.41667 18.0278 7.51852 18.8889 10 18.8889Z" fill="#4e4e4e" />
+                        </svg>
+                        {{ activity.completion_date|date:'d.m.Y' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="active-column">
+        <div class="column-title">В процессе</div>
+        <div class="column-body">
+            {% for activity in in_progress_activities %}
+            <div class="activity">
+                <div class="profile-active">
+                    <div class="profile-active-avatar">
+                        {% if activity.profile_image %}
+                        <img src="{{ activity.profile_image }}" alt="{{ activity.employee_name }}">
+                        {% endif %}
+                    </div>
+                    <div class="profile-active-name">{{ activity.employee_name }}</div>
+                </div>
+                <div class="active-order">{{ activity.order_number }}</div>
+                <div class="active-comment">{{ activity.short_descr }}</div>
+                <div class="type-date">
+                    <div class="furniture-type">
+                        {% if activity.furniture_type == 'soft' %}
+                            Мягкая мебель
+                        {% elif activity.furniture_type == 'cabinet' %}
+                            Корпусная мебель
+                        {% endif %}
+                    </div>
+                    <div class="date">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.2611 14.6922L9.44444 10.8756V5.47H10.5556V10.43L14.0256 13.9L13.2611 14.6922ZM9.44444 3.33333V1.11111H10.5556V3.33333H9.44444ZM16.6667 10.5556V9.44444H18.8889V10.5556H16.6667ZM9.44444 18.8889V16.6667H10.5556V18.8889H9.44444ZM1.11111 10.5556V9.44444H3.33333V10.5556H1.11111ZM10.0033 20C8.62111 20 7.32111 19.7378 6.10333 19.2133C4.8863 18.6881 3.82741 17.9756 2.92667 17.0756C2.02593 16.1756 1.31296 15.1178 0.787778 13.9022C0.262593 12.6867 0 11.387 0 10.0033C0 8.61963 0.262222 7.31963 0.786666 6.10333C1.31111 4.88704 2.0237 3.82815 2.92444 2.92667C3.82518 2.02519 4.88296 1.31222 6.09778 0.787779C7.31259 0.263335 8.61222 0.000742306 9.99667 1.56495e-06C11.3811 -0.000739176 12.6811 0.261483 13.8967 0.786668C15.1122 1.31185 16.1711 2.02445 17.0733 2.92445C17.9756 3.82445 18.6885 4.88222 19.2122 6.09778C19.7359 7.31333 19.9985 8.61296 20 9.99667C20.0015 11.3804 19.7393 12.6804 19.2133 13.8967C18.6874 15.113 17.9748 16.1719 17.0756 17.0733C16.1763 17.9748 15.1185 18.6878 13.9022 19.2122C12.6859 19.7367 11.3863 19.9993 10.0033 20ZM10 18.8889C12.4815 18.8889 14.5833 18.0278 16.3056 16.3056C18.0278 14.5833 18.8889 12.4815 18.8889 10C18.8889 7.51852 18.0278 5.41667 16.3056 3.69445C14.5833 1.97222 12.4815 1.11111 10 1.11111C7.51852 1.11111 5.41667 1.97222 3.69444 3.69445C1.97222 5.41667 1.11111 7.51852 1.11111 10C1.11111 12.4815 1.97222 14.5833 3.69444 16.3056C5.41667 18.0278 7.51852 18.8889 10 18.8889Z" fill="#4e4e4e" />
+                        </svg>
+                        {{ activity.completion_date|date:'d.m.Y' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="active-column">
+        <div class="column-title">На проверке</div>
+        <div class="column-body">
+            {% for activity in in_review_activities %}
+            <div class="activity">
+                <div class="profile-active">
+                    <div class="profile-active-avatar">
+                        {% if activity.profile_image %}
+                        <img src="{{ activity.profile_image }}" alt="{{ activity.employee_name }}">
+                        {% endif %}
+                    </div>
+                    <div class="profile-active-name">{{ activity.employee_name }}</div>
+                </div>
+                <div class="active-order">{{ activity.order_number }}</div>
+                <div class="active-comment">{{ activity.short_descr }}</div>
+                <div class="type-date">
+                    <div class="furniture-type">
+                        {% if activity.furniture_type == 'soft' %}
+                            Мягкая мебель
+                        {% elif activity.furniture_type == 'cabinet' %}
+                            Корпусная мебель
+                        {% endif %}
+                    </div>
+                    <div class="date">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.2611 14.6922L9.44444 10.8756V5.47H10.5556V10.43L14.0256 13.9L13.2611 14.6922ZM9.44444 3.33333V1.11111H10.5556V3.33333H9.44444ZM16.6667 10.5556V9.44444H18.8889V10.5556H16.6667ZM9.44444 18.8889V16.6667H10.5556V18.8889H9.44444ZM1.11111 10.5556V9.44444H3.33333V10.5556H1.11111ZM10.0033 20C8.62111 20 7.32111 19.7378 6.10333 19.2133C4.8863 18.6881 3.82741 17.9756 2.92667 17.0756C2.02593 16.1756 1.31296 15.1178 0.787778 13.9022C0.262593 12.6867 0 11.387 0 10.0033C0 8.61963 0.262222 7.31963 0.786666 6.10333C1.31111 4.88704 2.0237 3.82815 2.92444 2.92667C3.82518 2.02519 4.88296 1.31222 6.09778 0.787779C7.31259 0.263335 8.61222 0.000742306 9.99667 1.56495e-06C11.3811 -0.000739176 12.6811 0.261483 13.8967 0.786668C15.1122 1.31185 16.1711 2.02445 17.0733 2.92445C17.9756 3.82445 18.6885 4.88222 19.2122 6.09778C19.7359 7.31333 19.9985 8.61296 20 9.99667C20.0015 11.3804 19.7393 12.6804 19.2133 13.8967C18.6874 15.113 17.9748 16.1719 17.0756 17.0733C16.1763 17.9748 15.1185 18.6878 13.9022 19.2122C12.6859 19.7367 11.3863 19.9993 10.0033 20ZM10 18.8889C12.4815 18.8889 14.5833 18.0278 16.3056 16.3056C18.0278 14.5833 18.8889 12.4815 18.8889 10C18.8889 7.51852 18.0278 5.41667 16.3056 3.69445C14.5833 1.97222 12.4815 1.11111 10 1.11111C7.51852 1.11111 5.41667 1.97222 3.69444 3.69445C1.97222 5.41667 1.11111 7.51852 1.11111 10C1.11111 12.4815 1.97222 14.5833 3.69444 16.3056C5.41667 18.0278 7.51852 18.8889 10 18.8889Z" fill="#4e4e4e" />
+                        </svg>
+                        {{ activity.completion_date|date:'d.m.Y' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+        <div class="active-column">
+        <div class="column-title">Завершено</div>
+        <div class="column-body">
+            {% for activity in closed_activities %}
+            <div class="activity">
+                <div class="profile-active">
+                    <div class="profile-active-avatar">
+                        {% if activity.profile_image %}
+                        <img src="{{ activity.profile_image }}" alt="{{ activity.employee_name }}">
+                        {% endif %}
+                    </div>
+                    <div class="profile-active-name">{{ activity.employee_name }}</div>
+                </div>
+                <div class="active-order">{{ activity.order_number }}</div>
+                <div class="active-comment">{{ activity.short_descr }}</div>
+                <div class="type-date">
+                    <div class="furniture-type">
+                        {% if activity.furniture_type == 'soft' %}
+                            Мягкая мебель
+                        {% elif activity.furniture_type == 'cabinet' %}
+                            Корпусная мебель
+                        {% endif %}
+                    </div>
+                    <div class="date">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.2611 14.6922L9.44444 10.8756V5.47H10.5556V10.43L14.0256 13.9L13.2611 14.6922ZM9.44444 3.33333V1.11111H10.5556V3.33333H9.44444ZM16.6667 10.5556V9.44444H18.8889V10.5556H16.6667ZM9.44444 18.8889V16.6667H10.5556V18.8889H9.44444ZM1.11111 10.5556V9.44444H3.33333V10.5556H1.11111ZM10.0033 20C8.62111 20 7.32111 19.7378 6.10333 19.2133C4.8863 18.6881 3.82741 17.9756 2.92667 17.0756C2.02593 16.1756 1.31296 15.1178 0.787778 13.9022C0.262593 12.6867 0 11.387 0 10.0033C0 8.61963 0.262222 7.31963 0.786666 6.10333C1.31111 4.88704 2.0237 3.82815 2.92444 2.92667C3.82518 2.02519 4.88296 1.31222 6.09778 0.787779C7.31259 0.263335 8.61222 0.000742306 9.99667 1.56495e-06C11.3811 -0.000739176 12.6811 0.261483 13.8967 0.786668C15.1122 1.31185 16.1711 2.02445 17.0733 2.92445C17.9756 3.82445 18.6885 4.88222 19.2122 6.09778C19.7359 7.31333 19.9985 8.61296 20 9.99667C20.0015 11.3804 19.7393 12.6804 19.2133 13.8967C18.6874 15.113 17.9748 16.1719 17.0756 17.0733C16.1763 17.9748 15.1185 18.6878 13.9022 19.2122C12.6859 19.7367 11.3863 19.9993 10.0033 20ZM10 18.8889C12.4815 18.8889 14.5833 18.0278 16.3056 16.3056C18.0278 14.5833 18.8889 12.4815 18.8889 10C18.8889 7.51852 18.0278 5.41667 16.3056 3.69445C14.5833 1.97222 12.4815 1.11111 10 1.11111C7.51852 1.11111 5.41667 1.97222 3.69444 3.69445C1.97222 5.41667 1.11111 7.51852 1.11111 10C1.11111 12.4815 1.97222 14.5833 3.69444 16.3056C5.41667 18.0278 7.51852 18.8889 10 18.8889Z" fill="#4e4e4e" />
+                        </svg>
+                        {{ activity.completion_date|date:'d.m.Y' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
 
 
 

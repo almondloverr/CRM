@@ -22,6 +22,8 @@ urlpatterns = [
     path('delete-employee/<int:employee_id>/', views.delete_employee, name='delete_employee'),
     path('refactor_employee/<int:employee_id>/', views.refactor_employee, name='refactor_employee'),
 
+
+    path('api/get_order_data/', views.get_order_data, name='get_order_data'),
 ]
 
 # Добавление маршрутов для обслуживания медиа-файлов в режиме разработки
